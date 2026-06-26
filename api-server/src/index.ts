@@ -31,8 +31,7 @@ app.post('/analyze', async (req: any, res: any) => {
 
     console.log("📥 Received batch. Processing with AI...");
 
-    // SAFE PROMPT: Using standard single quotes for the string to avoid backtick issues
-    const prompt = 'You are a social media manager. Analyze these tweets and provide a short, trendy reply for each. CRITICAL: Wrap each reply in single backticks so they are easy to copy. Tweets: ' + text;
+    const prompt = 'You are a social media manager. Analyze these tweets and provide a short, trendy reply for each. CRITICAL: Wrap each reply in single backticks. Tweets: ' + text;
 
     try {
         let reply = ""; 
@@ -55,13 +54,16 @@ app.post('/analyze', async (req: any, res: any) => {
 
         const message = '📦 *Batch Processed!*\n\n' + reply + '\n\n🔗 *Reference:* ' + link;
         
-        await fetch(https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
+        // --- CORRECTED FETCH CALL ---
+        const telegramUrl = 'https://api.telegram.org/bot' + TELEGRAM_TOKEN + '/sendMessage';
+        
+        await fetch(telegramUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
                 chat_id: TELEGRAM_CHAT_ID, 
                 text: message,
-                parse_mode: "Markdown"
+                parse_mode: 'Markdown'
             })
         });
 
