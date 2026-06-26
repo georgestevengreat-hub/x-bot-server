@@ -31,19 +31,15 @@ app.post('/analyze', async (req: any, res: any) => {
 
     console.log("📥 Received batch. Processing with AI...");
 
-    // Using backticks ensures the string is treated as one multi-line block
-    const prompt = You are a social media manager. Analyze these tweets and provide a short, trendy reply for each. 
-    CRITICAL: Wrap each reply in single backticks (\) so they are easy to copy.
-    
-    Tweets:
-    ${text};
+    // SAFE PROMPT: Using standard single quotes for the string to avoid backtick issues
+    const prompt = 'You are a social media manager. Analyze these tweets and provide a short, trendy reply for each. CRITICAL: Wrap each reply in single backticks so they are easy to copy. Tweets: ' + text;
 
     try {
         let reply = ""; 
 
         if (aiStudio) {
             console.log("Routing to Gemini...");
-            const model = aiStudio.getGenerativeModel({ model: "gemini-2.0-flash" });
+            const model = aiStudio.getGenerativeModel({ model: "gemini-1.5-flash" });
             const result = await model.generateContent(prompt);
             reply = result.response.text();
         } else if (openRouter) {
@@ -57,7 +53,7 @@ app.post('/analyze', async (req: any, res: any) => {
             throw new Error("No AI providers configured.");
         }
 
-        const message = 📦 *Batch Processed!*\n\n${reply}\n\n🔗 *Reference:* ${link};
+        const message = '📦 *Batch Processed!*\n\n' + reply + '\n\n🔗 *Reference:* ' + link;
         
         await fetch(https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage, {
             method: "POST",
