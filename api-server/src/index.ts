@@ -19,30 +19,20 @@ const openRouter = OPENROUTER_API_KEY ? new OpenAI({
     baseURL: "https://openrouter.ai/api/v1",
     apiKey: OPENROUTER_API_KEY,
     defaultHeaders: {
-        "HTTP-Referer": "https://github.com", // Required by OpenRouter
+        "HTTP-Referer": "https://github.com", 
         "X-Title": "X-Bot",
     }
 }) : null;
 
-app.post('/analyze', async (req: any, res: any) => {
+app.post("/analyze", async (req: any, res: any) => {
     const { batch } = req.body;
     if (!batch || batch.length === 0) return res.status(400).json({ error: "No batch provided" });
 
     console.log("📥 Received batch of 20 tweets. Processing...");
 
-    // Format the 20 tweets for the AI
-    // We explicitly tell the AI to wrap each reply in single backticks
-    const prompt = You are a social media manager. Analyze these 20 tweets and provide a short, trendy reply for each. Number them 1-20. 
-    
-    CRITICAL INSTRUCTION: You must wrap the actual text of each reply inside single backticks (\) so they can be individually copied. 
-    Example format:
-    1. \Wow, this is such a cool update!\
-    2. \I totally agree with this take.\
-    
-    Tweets to analyze:
-    ${JSON.stringify(batch)};
+    // PROMPT REWRITTEN WITH DOUBLE QUOTES TO PREVENT COPY-PASTE ERRORS
+    const prompt = "You are a social media manager. Analyze these 20 tweets and provide a short, trendy reply for each. Number them 1-20.\n\nCRITICAL INSTRUCTION: You must wrap the actual text of each reply inside single quotes so they can be individually copied.\nExample format:\n1. 'Wow, this is such a cool update!'\n2. 'I totally agree with this take.'\n\nTweets to analyze:\n" + JSON.stringify(batch);
 
-    // ADDED BACK THE MISSING 'try' AND 'let reply'
     try {
         let reply = ""; 
 
@@ -57,7 +47,7 @@ app.post('/analyze', async (req: any, res: any) => {
         else if (openRouter) {
             console.log("Routing to OpenRouter (DeepSeek)...");
             const response = await openRouter.chat.completions.create({
-                model: "deepseek/deepseek-chat:free",
+                model: "deepseek/deepseek-chat",
                 messages: [{ role: "user", content: prompt }]
             });
             reply = response.choices[0].message.content || "";
@@ -65,16 +55,17 @@ app.post('/analyze', async (req: any, res: any) => {
             throw new Error("No AI providers configured.");
         }
 
-        // Send the massive batch reply to Telegram
-        const message = 📦 *Batch of 20 Processed!*\n\n${reply}\n\n🔗 *Reference Link (Tweet 1):* ${batch[0].link};
+        // TELEGRAM MESSAGE REWRITTEN TO AVOID TEMPLATE LITERALS
+        const message = "📦 *Batch of 20 Processed!*\n\n" + reply + "\n\n🔗 *Reference Link (Tweet 1):* " + batch[0].link;
+        const telegramUrl = "https://api.telegram.org/bot" + TELEGRAM_TOKEN + "/sendMessage";
         
-        await fetch(https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
+        await fetch(telegramUrl, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ 
                 chat_id: TELEGRAM_CHAT_ID, 
                 text: message,
-                parse_mode: "Markdown" // Ensures the single backticks become copyable blocks
+                parse_mode: "Markdown" 
             })
         });
 
