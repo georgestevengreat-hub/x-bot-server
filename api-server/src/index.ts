@@ -31,7 +31,7 @@ app.post("/analyze", async (req: any, res: any) => {
     console.log("📥 Received batch of 20 tweets. Processing...");
 
     // PROMPT REWRITTEN WITH DOUBLE QUOTES TO PREVENT COPY-PASTE ERRORS
-    const prompt = "You are a social media manager. Analyze these 20 tweets and provide a short, trendy reply for each. Number them 1-20.\n\nCRITICAL INSTRUCTION: You must wrap the actual text of each reply inside single quotes so they can be individually copied.\nExample format:\n1. 'Wow, this is such a cool update!'\n2. 'I totally agree with this take.'\n\nTweets to analyze:\n" + JSON.stringify(batch);
+    const prompt = "You are a social media manager. Analyze these 20 tweets and provide a short, trendy reply for each. Number them 1-20.\n\nCRITICAL INSTRUCTION: You must wrap the actual text of each reply inside triple backticks so they can be individually copied on telegram.\nExample format:\n1. 'Wow, this is such a cool update!'\n2. 'I totally agree with this take.'\n\nTweets to analyze:\n" + JSON.stringify(batch);
 
     try {
         let reply = ""; 
