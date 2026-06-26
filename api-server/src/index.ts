@@ -31,10 +31,20 @@ app.post('/analyze', async (req: any, res: any) => {
     console.log("📥 Received batch of 20 tweets. Processing...");
 
     // Format the 20 tweets for the AI
-    const prompt = `You are a social media manager. Analyze these 20 tweets and provide a short, trendy reply for each. Number them 1-20:\n${JSON.stringify(batch)}`;
+    // We explicitly tell the AI to wrap each reply in single backticks
+    const prompt = `You are a social media manager. Analyze these 20 tweets and provide a short, trendy reply for each. Number them 1-20. 
     
+    CRITICAL INSTRUCTION: You must wrap the actual text of each reply inside single backticks (\`) so they can be individually copied. 
+    Example format:
+    1. \`Wow, this is such a cool update!\`
+    2. \`I totally agree with this take.\`
+    
+    Tweets to analyze:
+    ${JSON.stringify(batch)}`;
+
+    // ADDED BACK THE MISSING 'try' AND 'let reply'
     try {
-        let reply = "";
+        let reply = ""; 
 
         // 1. Try Gemini First
         if (aiStudio) {
@@ -57,10 +67,15 @@ app.post('/analyze', async (req: any, res: any) => {
 
         // Send the massive batch reply to Telegram
         const message = `📦 *Batch of 20 Processed!*\n\n${reply}\n\n🔗 *Reference Link (Tweet 1):* ${batch[0].link}`;
+        
         await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: message })
+            body: JSON.stringify({ 
+                chat_id: TELEGRAM_CHAT_ID, 
+                text: message,
+                parse_mode: "Markdown" // Ensures the single backticks become copyable blocks
+            })
         });
 
         res.json({ success: true });
