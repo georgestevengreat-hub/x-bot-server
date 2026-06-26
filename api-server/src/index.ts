@@ -6,17 +6,14 @@ import OpenAI from "openai";
 const app = express();
 const port = process.env.PORT || 8080;
 
-// 1. Enable CORS & JSON parsing
 app.use(cors({ origin: '*' }));
 app.use(express.json());
 
-// 2. Load Secrets
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || "";
 const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN || "";
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || "";
 
-// 3. Initialize AI Providers
 const aiStudio = GEMINI_API_KEY ? new GoogleGenerativeAI(GEMINI_API_KEY) : null;
 const openRouter = OPENROUTER_API_KEY ? new OpenAI({
     baseURL: "https://openrouter.ai/api/v1",
@@ -27,15 +24,14 @@ const openRouter = OPENROUTER_API_KEY ? new OpenAI({
     }
 }) : null;
 
-// 4. Analyze Route
 app.post('/analyze', async (req: any, res: any) => {
-    // Matches the data structure from your content.js: { text, link }
     const { text, link } = req.body; 
     
     if (!text) return res.status(400).json({ error: "No text provided" });
 
     console.log("📥 Received batch. Processing with AI...");
 
+    // Using backticks ensures the string is treated as one multi-line block
     const prompt = You are a social media manager. Analyze these tweets and provide a short, trendy reply for each. 
     CRITICAL: Wrap each reply in single backticks (\) so they are easy to copy.
     
@@ -46,9 +42,8 @@ app.post('/analyze', async (req: any, res: any) => {
         let reply = ""; 
 
         if (aiStudio) {
-            console.log("Routing to Gemini 2.5...");
-            // Updated to the current 2.5-flash model
-            const model = aiStudio.getGenerativeModel({ model: "gemini-2.5-flash" });
+            console.log("Routing to Gemini...");
+            const model = aiStudio.getGenerativeModel({ model: "gemini-2.0-flash" });
             const result = await model.generateContent(prompt);
             reply = result.response.text();
         } else if (openRouter) {
@@ -62,7 +57,6 @@ app.post('/analyze', async (req: any, res: any) => {
             throw new Error("No AI providers configured.");
         }
 
-        // 5. Send to Telegram
         const message = 📦 *Batch Processed!*\n\n${reply}\n\n🔗 *Reference:* ${link};
         
         await fetch(https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage, {
